@@ -67,7 +67,7 @@
    },
    success: (responce)=>{
 	   var user=JSON.parse(responce);
-	   console.log(user.email)
+	   
 	   document.getElementById("from").value=user.email
 	    document.getElementById("hi").value=user.email
 	   
@@ -145,7 +145,7 @@ chatForm.addEventListener('submit', (e) => {
 });
 
 socket.on('output',(data) =>{
-    console.log(data);
+    
 });
 
 socket.on('output',(data) => { //recieves the entire chat history upon logging in between two users and displays them
@@ -157,7 +157,7 @@ socket.on('output',(data) => { //recieves the entire chat history upon logging i
 
 socket.on('message',(data) => { //recieves a message and displays it
         outputMessage(data);
-        console.log(data);
+        
     chatMessages.scrollTop=chatMessages.scrollHeight;
 });
 
