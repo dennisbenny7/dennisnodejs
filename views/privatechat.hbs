@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="css/style1.css">
+  <title> klc Chat Room</title>
+</head>
+<body>
+   <p style="color: white;" >THIS CHAT IS COMPLEETLY PRIVATE.<p style="color: black;background-color:red;"> ENABLE DESKTOP MODE IN YOUR BROWSER.</p> <P style="color: white;"> HOW TO USE?<br> STEP-1:copy a  name from "all klc users" and paste it in second box .Then you can see other users who are online. <br>STEP-2 :press done,then it will start a chat between you and him/her. <br>NOTE THAT:whenever a third person sent a message to you, that message will show in your main chat between you and previous one, so to communicate with the third one you should enter the name of third person and press done then it will open a room between you and that third person</p>
+     
+  <div class="dropdown show">
+  <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+  ALL KLC USERS
+  </a>
+
+  <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+  <ul id="mongo"></ul>
+     </div>
+</div><br>
+ <h3 style="background-color: red;"> USERS ONLINE :</h3>
+  <h2 style="color: white;">NOTE:the repeated names of online users are the same</h2>
+         
+      <ul id="online" style="color:white;"></ul>
+    
+
+  <div class="chat-container">
+    <header class="chat-header">
+       <h1><i class="fas fa-smile"></i>KLC private chatroom</h1>
+    </header>
+    <main class="chat-main">
+      <div class="chat-sidebar">
+        <p>your name:</p>
+        <h1 id="from" value=""></h1>
+        <input id="hi" type="text" value="" placeholder="Enter Your Name.." required disabled/>
+<p>enter who you are sending </p>
+        <input id="to" type="text" placeholder="Enter Who You are Sending to.." required/>
+        <button class="btn2" onclick="storeDetails()"><i class="fas fa-paper-plane"></i> Done </button>
+      
+      </div>
+      <div class="chat-messages">
+					<div class="message"></div>
+      </div>
+    </main>
+    <div class="chat-form-container">
+      <form id="chat-form">
+        <input
+          id="msg"
+          type="text"
+          placeholder="Enter Message"
+          required
+          autocomplete="off"
+        />
+        <button class="btn"><i class="fas fa-paper-plane"></i> Send</button>
+      </form>
+    </div>
+    </div>
+     <script src="https://code.jquery.com/jquery-3.2.1.min.js"> </script>
+ 
+    <script>
+        $.ajax({
+     url:"http://localhost:5000/getusername1",
+   method:"POST",
+   data:{
+    data:"ajaxconnected"
+   },
+   success: (responce)=>{
+	   var user=JSON.parse(responce);
+	   console.log(user.email)
+	   document.getElementById("from").value=user.email
+	    document.getElementById("hi").value=user.email
+	   
+   }
+	   })
+
+    </script>
+    <script>
+        $.ajax({
+     url:"http://localhost:5000/mongo",
+   method:"POST",
+   data:{
+    data:"ajaxconnected"
+   },
+   success: (responce)=>{
+	   var user=JSON.parse(responce);
+      var html="";
+    
+     for (var a=0;a<user.length;a++){
+       html +="<li>"+user[a].email+"</li>";
+
+     }
+     document.getElementById("mongo").innerHTML+=html;
+  
+     
+	  
+     
+   }
+	   })
+</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.4/qs.min.js" integrity="sha256-ijqLssetA1NMNjZ+w1zaUafQQLm4IW5OoM8O+4tatME=" crossorigin="anonymous">
+    </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script >
+      const socket = io ('http://localhost:5000/ioprivate');
+const chatForm = document.getElementById('chat-form');
+const chatMessages = document.querySelector('.chat-messages');
+const {username, room} = Qs.parse(location.search, {
+    ignoreQueryPrefix:true
+});
+
+
+let fromUser="";
+let toUser="";
+//socket.emit('userDetails',{fromUser,toUser});
+
+function storeDetails() {
+    fromUser = document.getElementById('from').value;
+    toUser = document.getElementById('to').value;
+    element = document.querySelectorAll(".chat-messages");
+    socket.emit('userDetails',{fromUser,toUser});
+    
+    //emits details of established chat
+    socket.emit("onlineusers",fromUser)
+}
+
+function storeTo() {
+    
+    //console.log(toUser);
+}
+
+
+
+//Submit message
+chatForm.addEventListener('submit', (e) => {
+    e.preventDefault(); //Prevents default logging to a file
+    const msg = e.target.elements.msg.value;
+    final = {
+        'fromUser':fromUser,
+        'toUser':toUser,
+        'msg':msg
+    };
+    socket.emit('chatMessage',final); //emits chat message along with sender and reciever to server
+    document.getElementById('msg').value=" ";
+});
+
+socket.on('output',(data) =>{
+    console.log(data);
+});
+
+socket.on('output',(data) => { //recieves the entire chat history upon logging in between two users and displays them
+    for(var i=0; i<data.length;i++) {
+        outputMessage(data[i]);
+    }
+    chatMessages.scrollTop=chatMessages.scrollHeight;
+});
+
+socket.on('message',(data) => { //recieves a message and displays it
+        outputMessage(data);
+        console.log(data);
+    chatMessages.scrollTop=chatMessages.scrollHeight;
+});
+
+function outputMessage(message) {
+    const div = document.createElement('div');
+    div.classList.add('message');
+    div.innerHTML=`<p class="meta">${message.from}<span> ${message.time}, ${message.date}</span></p>
+    <p class ="text">
+        ${message.message}
+    </p>`;
+    document.querySelector('.chat-messages').appendChild(div);
+}
+socket.on('roomUsers', ({ room, users }) => {
+    
+    outputUsers(users);
+  });
+  function outputUsers(users) {
+    document.getElementById("online").innerHTML = '';
+    users.forEach((user) => {
+      const li = document.createElement('li');
+      li.innerText = user.username;
+      document.getElementById("online").appendChild(li);
+    });
+  }
+  </script>
+</body>
+</html>

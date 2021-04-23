@@ -1,0 +1,77 @@
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  {{#if user}}
+  <a class="navbar-brand" href="/logout" style="background-color: red;">LOGOUT
+  </a>
+  <a class="navbar-brand" href="/cha" style="background-color:green;color:white;">PUBLIC CHAT
+  </a>
+  <a class="navbar-brand" href="/pri"style="background-color: red;" >PRIVATE CHAT
+  </a>
+   
+   
+  
+  {{else}}
+  <a class="navbar-brand" style="background-color: red; color:white" href="/login">LOGIN TO CHAT WITH KLC
+   <a class="dropdown-item" style="color:black" href="/signup">SIGNUP</a>
+
+
+  </a>
+  {{/if}}
+   <div class="dropdown">
+  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+   {{#if user }}
+   {{user.email}}
+   {{else}}
+    account
+   {{/if}}
+   
+   
+  </button>
+  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+    {{#if user }}
+   <a class="dropdown-item" href="/logout">logout</a>
+   {{else}}
+
+  <a class="dropdown-item" href="/login">login</a>
+  <a class="dropdown-item" href="/signup">signup</a>
+   {{/if}}
+    
+   
+   </div>
+  {{#if user}}
+   <a class="navbar-brand" href="#">WELCOME  {{user.email}} </a>
+  <img src="f.jpeg" style="margin-top:25px;width:300px;" ><br>
+  
+ 
+  {{/if}}
+  
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="#"><span class="sr-only">(current)</span></a>
+      </li>
+     {{#if user}}
+     
+     {{else}}
+     
+      <li class="nav-item">
+       <a class="dropdown-item" href="/youtube">KLC YOUTUBE VIDEO DOWNLOADER</a>
+        <a class="dropdown-item" href="/login">KLC PUBLIC CHAT</a>
+         <a class="dropdown-item" href="/login">KLC PRIVATE CHAT</a>
+         
+          <a class="dropdown-item" href="https://en.savefrom.net/download-from-instagram">instagram downloader</a>
+        
+          <a class="dropdown-item" href=" https://fbdown.net/">facebook video downloader</a>
+         
+         {{/if}}
+      </li>
+    </ul>
+   
+</div>
+   
+  </div>
+</nav>

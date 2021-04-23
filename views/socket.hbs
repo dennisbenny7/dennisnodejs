@@ -1,0 +1,272 @@
+<main>
+
+<form onsubmit="return enterName();">
+<input  id="name" placeholder="enter name">
+<input type="submit">
+ <ul id="roomusers"></ul>
+</form>
+<ul id="users" style="color:green;"></ul>
+<div id="demo" style="color: white;"><br>
+    
+      
+    <ul id="msgs"class="list-group"></ul><br>
+    <form onsubmit="return sndmsg();" >
+<input id="msg" placeholder="enter msg">
+<input type="submit">
+    </form><br>
+      <ul id="noti"></ul>
+  
+
+    
+   
+
+
+</div>
+   <script>
+    var  io=io("http://localhost:3000/get");
+    var receiver="";
+    var sender="";
+    
+    function enterName(){
+      
+        var name = document.getElementById("name").value;
+        io.emit("connecteduser",name);
+        sender=name;
+        return false;
+    };
+   // io.on("connecteduser",(username)=>{
+    
+     //var html="";
+     //var online="  online now"
+  // html+="<li><button onclick='selected(this.innerHTML)'>"  +username+ "</button></li>";
+    //document.getElementById("users").innerHTML+=html;
+
+ //});
+ 
+ function selected(username){
+  
+    
+
+
+
+  
+
+   
+    
+
+   
+   receiver=username;
+  $.ajax({
+     url:"http://localhost:3000/getmsgs",
+   method:"POST",
+   data:{
+     sender:sender,
+     receiver:receiver,
+   },
+   success: (responce)=>{
+     
+     var messeges=JSON.parse(responce);
+     
+     var html="";
+    
+     for (var a=0;a<messeges.length;a++){
+       html +="<li>"+messeges[a].sender+"says:"+messeges[a].message+"</li>";
+
+     }
+     document.getElementById("msgs").innerHTML+=html;
+   }
+  })
+   
+ }
+ 
+ 
+ 
+ 
+ function sndmsg(){
+   var msg=document.getElementById("msg").value;
+   io.emit("sndmsg",{
+     sender: sender,
+     receiver: receiver,
+     msg: msg
+  
+   });
+   var html="";
+html +="<li>you said:"+msg+"</li>";
+document.getElementById("msgs").innerHTML+=html;
+return false
+ }
+ io.on("newmsg",(data)=>{
+var html="";
+html +="<li>"+data.sender+"says:"+data.msg+"</li>";
+document.getElementById("msgs").innerHTML+=html;
+ 
+io.emit("noti",data)
+
+
+
+ })
+
+io.on("noti",(data)=>{
+
+ 
+
+       var html="";
+  var msg="you have a msg from "
+   html+="<li>" +msg +data.sender+ "</li>";
+    document.getElementById("noti").innerHTML+=html;
+
+    
+})
+ io.on("roomUsers",({room,users})=>{
+   
+ 
+
+  console.log(users)
+    
+  
+     var html="";
+     
+   html+="<li><button id='bu' onclick='selected(this.innerHTML)'>"  +users[0].username+ "</button></li>";
+ 
+    document.getElementById("users").innerHTML +=html;
+  
+     
+ 
+  
+})
+
+
+
+ 
+ 
+ 
+</script>
+app.post("/getmsgs",(req,res)=>{
+
+    const connection_string="mongodb://localhost:27017/"
+    MongoClient.connect(connection_string,{useUnifiedTopology:true},function(err,client){
+    if(err)throw err;
+    console.log("connected to mongo db")
+    var db = client.db("data") 
+    var snd= req.body.receiver
+    var rcv= req.body.sender
+    console.log(rcv,snd)
+
+    db.collection("books").find({$or : [{sender:snd,receiver:rcv},{sender:rcv,receiver:snd}]}).project({sender:1,_id:0,receiver:1,message:1}).toArray(function (err,result) {
+        if (err) throw err;
+        console.log(result)
+        res.end(JSON.stringify(result)); 
+
+        client.close();
+      
+    })
+   
+    
+    })    
+    
+})
+
+const members = [];
+var users=[]
+io.of("/get").on("connection",(socket)=>{
+    console.log ("user connected",socket.id);
+
+    
+  
+
+
+
+    
+    socket.on("connecteduser",(username)=>{
+       
+    
+        
+        users[username]=socket.id;
+        var room="klc"
+        console.log(users)
+
+         var user=roo(socket.id,username,room)
+         socket.join(user.room)
+         
+        
+
+// Join user to chat
+function roo(id, username, room) {
+  const user = { id, username, room };
+  members.push(user);
+
+  return user;
+
+ 
+}
+io.of("/get").to(user.room).emit('roomUsers', {
+    room: user.room,
+    users: getRoomUsers(user.room)
+  });
+ 
+
+  // Get room users
+function getRoomUsers(room) {
+   return members.filter(user => user.room === room);
+    
+    
+  }
+
+
+
+
+
+
+
+        
+     
+    io.emit("connecteduser",username); 
+
+    
+
+        
+        })
+        socket.on("noti",(data)=>{
+    
+            var sockeid=users[data.receiver];
+             io.to(sockeid).emit("noti",data);
+            
+
+        })
+        
+
+        socket.on("sndmsg",(data)=>{
+            var socketid=users[data.receiver];
+            io.to(socketid).emit("newmsg",data);
+        
+            
+            const connection_string="mongodb://localhost:27017/"
+            MongoClient.connect(connection_string,{useUnifiedTopology:true},function(err,client){
+            if(err)throw err;
+            console.log("connected to mongo db")
+            var db = client.db("data")
+            db.collection("books").insertOne({
+                sender:data.sender,
+                receiver:data.receiver,
+                message:data.msg
+
+            },function(err,res){
+                if (err) throw err
+                console.log("document incerted")
+                client.close();
+            })
+
+}) 
+        })
+
+        
+    
+
+    })
+
+app.get("/chat" ,(req,res)=>{
+    res.render("socket")
+})
+    
+ 
+</main>

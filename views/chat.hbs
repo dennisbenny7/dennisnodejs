@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+      integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <title>klc chat</title>
+  </head>
+  <body>
+    <h6 style="color: white;background-color:blue;">ENABLE DESKTOP MODE IN YOUR BROWSER</h6>
+    <div class="">
+    <div class="row">
+      
+    <div class="chat-container">
+      <header class="chat-header">
+        <h1><i class="fas fa-smile"></i> KLC PUBLIC CHATROOM</h1>
+        <p><button id="button">show previous messages</button></p>
+        <a id="leave-btn" class="btn">Leave Room</a>
+      </header>
+      <main class="chat-main">
+        <div class="chat-sidebar">
+          {{#if user}}
+           <a > your name: </a>
+             <a id="myr"> {{user.email}}</a>
+             {{/if}}
+
+
+          <h3><i class="fas fa-comments"></i> Room Name:</h3>
+          
+          <h2 id="room-name"></h2>
+          <h3><i class="fas fa-users"></i> Users online</h3>
+          <ul id="users"></ul>
+        </div>
+        <div class="chat-messages"></div>
+      </main>
+      <div class="chat-form-container">
+        <form id="chat-form">
+          <input
+            id="msg"
+            type="text"
+            placeholder="Enter Message"
+            required
+            autocomplete="off"
+          />
+          <button class="btn"><i class="fas fa-paper-plane"></i> Send</button>
+        </form>
+      </div>
+    </div>
+    </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"> </script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.2/qs.min.js"
+      integrity="sha256-TDxXjkAUay70ae/QJBEpGKkpVslXaHHayklIVglFRT4="
+      crossorigin="anonymous"
+    ></script>
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+    
+    const chatForm = document.getElementById('chat-form');
+const chatMessages = document.querySelector('.chat-messages');
+const roomName = document.getElementById('room-name');
+const userList = document.getElementById('users');
+const previous= document.getElementById('button')
+
+// Get username and room from URL
+const { username} = Qs.parse(location.search, {
+  ignoreQueryPrefix: true,
+});
+
+
+ const socket = io('http://localhost:5000/iopublic');
+var room="klc"
+
+//var use=document.getElementById("myr").value
+//var dennis=JSON.stringify(use)
+
+
+
+//var username=JSON.parse(use);
+    socket.emit('joinRoom', { username,room  });
+
+// Get room and users
+socket.on('roomUsers', ({ room, users }) => {
+  outputRoomName(room);
+  outputUsers(users);
+});
+
+// Message from server
+socket.on('message', (message) => {
+  console.log(message);
+  outputMessage(message);
+
+  // Scroll down
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+
+// Message submit
+chatForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  // Get message text
+  let msg = e.target.elements.msg.value;
+
+  msg = msg.trim();
+
+  if (!msg) {
+    return false;
+  }
+
+  // Emit message to server
+  socket.emit('chatMessage', msg);
+
+  // Clear input
+  e.target.elements.msg.value = '';
+  e.target.elements.msg.focus();
+});
+
+// Output message to DOM
+function outputMessage(message) {
+  const div = document.createElement('div');
+  div.classList.add('message');
+  const p = document.createElement('p');
+  p.classList.add('meta');
+  p.innerText = message.username;
+  p.innerHTML += `<span>${message.time}</span>`;
+  div.appendChild(p);
+  const para = document.createElement('p');
+  para.classList.add('text');
+  para.innerText = message.text;
+  div.appendChild(para);
+  document.querySelector('.chat-messages').appendChild(div);
+}
+
+// Add room name to DOM
+function outputRoomName(room) {
+  roomName.innerText = room;
+}
+
+// Add users to DOM
+function outputUsers(users) {
+  userList.innerHTML = '';
+  users.forEach((user) => {
+    const li = document.createElement('li');
+    li.innerText = user.username;
+    userList.appendChild(li);
+  });
+}
+
+//Prompt the user before leave chat room
+document.getElementById('leave-btn').addEventListener('click', () => {
+  const leaveRoom = confirm('Are you sure you want to leave the chatroom?');
+  if (leaveRoom) {
+    window.location = '../index.html';
+  } else {
+  }
+});
+previous.addEventListener("click",()=>{
+  $.ajax({
+    url:"http://localhost:5000/getgrmsgs",
+  method:"POST",
+  data:{
+    msg:"ajax connected"
+
+  },
+  
+  success: (responce)=>{
+    
+    var messeges=JSON.parse(responce);
+    
+    
+     showgroup(messeges)
+ }
+
+  
+  
+})
+})
+function showgroup(message){
+
+  console.log(message)
+  for (var a=0;a<message.length;a++){
+    
+
+  
+    const div = document.createElement('div');
+    div.classList.add('message');
+    const p = document.createElement('p');
+    p.classList.add('meta');
+    p.innerText =message[a].sender
+    p.innerHTML += `<span>"0:00"</span>`;
+    div.appendChild(p);
+    const para = document.createElement('p');
+    para.classList.add('text');
+    para.innerText = message[a].message
+    div.appendChild(para);
+    document.querySelector('.chat-messages').appendChild(div);
+  }
+  }
+// Join chatroom
+
+   //$.ajax({
+     //url:"http://localhost:3000/getusername",
+   ///method:"POST",
+   //data:{
+     
+   //},
+   //success: (responce)=>{
+     // var messeges=JSON.parse(responce)
+      //console.log(messeges)
+        
+   //}
+   //})
+
+
+    </script>
+  </body>
+</html>
