@@ -165,7 +165,7 @@ window.onclick = function(event) {
   var username=document.getElementById("username").value
   console.log(username)
   $.ajax({
-     url:"http://5000/getusr",
+     url:"/getusr",
    method:"POST",
    data:{
      usern:username,
