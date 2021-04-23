@@ -60,7 +60,7 @@
  
     <script>
         $.ajax({
-     url:"http://localhost:5000/getusername1",
+     url:"/getusername1",
    method:"POST",
    data:{
     data:"ajaxconnected"
@@ -77,7 +77,7 @@
     </script>
     <script>
         $.ajax({
-     url:"http://localhost:5000/mongo",
+     url:"/mongo",
    method:"POST",
    data:{
     data:"ajaxconnected"
@@ -102,7 +102,7 @@
     </script>
   <script src="/socket.io/socket.io.js"></script>
   <script >
-      const socket = io ('http://localhost:5000/ioprivate');
+      const socket = io ('/ioprivate');
 const chatForm = document.getElementById('chat-form');
 const chatMessages = document.querySelector('.chat-messages');
 const {username, room} = Qs.parse(location.search, {

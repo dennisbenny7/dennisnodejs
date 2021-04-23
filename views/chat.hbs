@@ -76,7 +76,7 @@ const { username} = Qs.parse(location.search, {
 });
 
 
- const socket = io('http://localhost:5000/iopublic');
+ const socket = io('/iopublic');
 var room="klc"
 
 //var use=document.getElementById("myr").value
@@ -164,7 +164,7 @@ document.getElementById('leave-btn').addEventListener('click', () => {
 });
 previous.addEventListener("click",()=>{
   $.ajax({
-    url:"http://localhost:5000/getgrmsgs",
+    url:"/getgrmsgs",
   method:"POST",
   data:{
     msg:"ajax connected"
